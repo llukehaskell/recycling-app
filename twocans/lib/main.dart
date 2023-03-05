@@ -83,6 +83,7 @@ String getProductRecycleInfo(Product product, Map<String, List<dynamic>> recycle
 }
 
 class MyAppState extends ChangeNotifier {
+  var rewardsPoints = 0;
   var markerList = <Marker>{};
   Future _addMarkerLongPressed(LatLng latlong) async {
     final MarkerId markerId = MarkerId(latlong.toString());
@@ -132,7 +133,7 @@ class _HomePageState extends State<HomePage> {
         page = MapPage();
         break;
       case 3:
-        page = const Placeholder();
+        page = ProfilePage();
         break;
       default:
         throw UnimplementedError('No widget for $selectedPage');
@@ -267,5 +268,40 @@ class MapPage extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class ProfilePage extends StatelessWidget{
+  @override
+  Widget build(BuildContext context){
+    var appState = context.watch<MyAppState>();
+    var points = appState.rewardsPoints;
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+                Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Icon(Icons.person,
+                    size: 300.0,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer),
+                ),
+                SizedBox(height: 10.0),
+                Card(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: Text('Points: $points',
+                    textScaleFactor: 4.0,
+                    // style: ,
+                    ),
+                ),
+                ],
+              ),
+          ),
+        ),
+      );
   }
 }
