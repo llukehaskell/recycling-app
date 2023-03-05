@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 void main() {
   runApp(const MainApp());
@@ -37,22 +38,23 @@ class HomePage extends StatefulWidget{
 class _HomePageState extends State<HomePage> {
   
   var selectedPage = 0;
+  String barcodeScanRes = '';
 
   @override
   Widget build(BuildContext context){
     Widget page;
     switch(selectedPage){
       case 0:
-        page = Placeholder();
+        page = const Placeholder();
         break;
       case 1:
-        page = Placeholder();
+        page = const Placeholder();
         break;
       case 2:
-        page = Placeholder();
+        page = const Placeholder();
         break;
       case 3:
-        page = Placeholder();
+        page = const Placeholder();
         break;
       default:
         throw UnimplementedError('No widget for $selectedPage');
@@ -72,29 +74,26 @@ class _HomePageState extends State<HomePage> {
             type: BottomNavigationBarType.fixed,
             iconSize: 36.0,
             backgroundColor: Theme.of(context).colorScheme.background,
+            // ignore: prefer_const_literals_to_create_immutables
             items:[
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.home),
                 label: 'Home',
-                // backgroundColor: Theme.of(context).colorScheme.onBackground,
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.search),
                 label: 'Search',
-                // backgroundColor: Theme.of(context).colorScheme.onBackground,
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.map),
                 label: 'Map',
-                // backgroundColor: Theme.of(context).colorScheme.onBackground,
               ),
-              BottomNavigationBarItem(
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.person),
                 label: 'Profile',
-                // backgroundColor: Theme.of(context).colorScheme.onBackground,
               ),
             ],
-            // selectedItemColor: Theme.of(context).colorScheme.onBackground,
+            selectedItemColor: Theme.of(context).colorScheme.onBackground,
             currentIndex: selectedPage,
             onTap: (index) {
               setState((){
@@ -108,10 +107,17 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.large(
-        onPressed: (){
+        onPressed: () async {
           print('Camera');
+          setState(() async {
+            barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+              '#ff6666',
+              'Cancel',
+              false,
+              ScanMode.BARCODE);
+          });
         },
-        child: Icon(Icons.photo_camera),
+        child: const Icon(Icons.qr_code_scanner),
       )
     );
   }
