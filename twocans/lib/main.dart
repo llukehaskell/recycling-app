@@ -7,6 +7,9 @@ import 'package:provider/provider.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
 
 void main() {
   runApp(const MainApp());
@@ -79,17 +82,31 @@ String getProductRecycleInfo(Product product, Map<String, List<dynamic>> recycle
   return 'No special instructions.';
 }
 
-class MyAppState extends ChangeNotifier{
-
+class MyAppState extends ChangeNotifier {
+  var markerList = <Marker>{};
+  Future _addMarkerLongPressed(LatLng latlong) async {
+    final MarkerId markerId = MarkerId(latlong.toString());
+    Marker marker = Marker(
+      markerId: markerId,
+      draggable: true,
+      position: latlong, //With this parameter you automatically obtain latitude and longitude
+      infoWindow: InfoWindow(
+        title: "Recycling Location",
+      ),
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), //Icon(Icons.recycling),
+    );
+    markerList.add(marker);
+    print(markerList);
+    notifyListeners();
+  }
 }
 
-class HomePage extends StatefulWidget{
+class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  
   var selectedPage = 0;
   String barcodeScanRes = '';
   
@@ -103,9 +120,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     Widget page;
-    switch(selectedPage){
+    switch (selectedPage) {
       case 0:
         page = const Placeholder();
         break;
@@ -113,7 +129,7 @@ class _HomePageState extends State<HomePage> {
         page = const Placeholder();
         break;
       case 2:
-        page = const Placeholder();
+        page = MapPage();
         break;
       case 3:
         page = const Placeholder();
@@ -162,13 +178,8 @@ class _HomePageState extends State<HomePage> {
                 selectedPage = index;
               });
             },
-
-          ),
-        ),
-      ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: FloatingActionButton(
         onPressed: () async {
           print('Camera');
           
@@ -214,5 +225,43 @@ class _HomePageState extends State<HomePage> {
           child: const Icon(Icons.qr_code_scanner),
         )
       );
+  }
+}
+
+class MapPage extends StatelessWidget {
+  late GoogleMapController mapController;
+
+  final LatLng _center = const LatLng(39.329201, -82.101173);
+
+  void _onMapCreated(GoogleMapController controller) {
+    mapController = controller;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var markers = appState.markerList;
+
+    return MaterialApp(
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green[700],
+      ),
+      home: Scaffold(
+        body: SafeArea(
+          child: GoogleMap(
+            onMapCreated: _onMapCreated,
+            initialCameraPosition: CameraPosition(
+              target: _center,
+              zoom: 11.0,
+            ),
+            onLongPress: (latlong) {
+              appState._addMarkerLongPressed(latlong);
+            },
+            markers: markers,
+          ),
+        ),
+      ),
+      
   }
 }
