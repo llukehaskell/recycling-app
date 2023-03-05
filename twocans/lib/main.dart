@@ -147,39 +147,43 @@ class _HomePageState extends State<HomePage> {
               child: page,
             ),
           ),
-        SafeArea(
-          child: BottomNavigationBar(
-            type: BottomNavigationBarType.fixed,
-            iconSize: 36.0,
-            backgroundColor: Theme.of(context).colorScheme.background,
-            // ignore: prefer_const_literals_to_create_immutables
-            items:[
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.search),
-                label: 'Search',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.map),
-                label: 'Map',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-            selectedItemColor: Theme.of(context).colorScheme.onBackground,
-            currentIndex: selectedPage,
-            onTap: (index) {
-              setState((){
-                selectedPage = index;
-              });
-            },
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton(
+          SafeArea(
+            child: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              iconSize: 36.0,
+              backgroundColor: Theme.of(context).colorScheme.background,
+              // ignore: prefer_const_literals_to_create_immutables
+              items:[
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.search),
+                  label: 'Search',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.map),
+                  label: 'Map',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
+              selectedItemColor: Theme.of(context).colorScheme.onBackground,
+              currentIndex: selectedPage,
+              onTap: (index) {
+                setState((){
+                  selectedPage = index;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: FloatingActionButton(
         onPressed: () async {
           print('Camera');
           
@@ -262,6 +266,6 @@ class MapPage extends StatelessWidget {
           ),
         ),
       ),
-      
+    );
   }
 }
