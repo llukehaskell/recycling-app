@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'package:csv/csv.dart';
 
 void main() {
   runApp(const MainApp());
@@ -26,6 +31,54 @@ class MainApp extends StatelessWidget {
   }
 }
 
+Future<Product> fetchProduct(String barcode) async {
+  String UPCRequest = 'https://www.searchupc.com/handlers/upcsearch.ashx?request_type=3&access_token=DDDAAC97-C007-4076-B078-7B263ECF287E&upc=';
+  UPCRequest = UPCRequest + barcode;
+  final response = await http
+        .get(Uri.parse(UPCRequest));
+
+  if (response.statusCode == 200){
+    return Product.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load product name');
+  }
+}
+
+class Product{
+  final String productName;
+  
+  const Product({
+    required this.productName,
+  });
+  
+  factory Product.fromJson(Map<String, dynamic> json){
+    return Product(
+      productName: json['0']['productname'],
+    );
+  }
+}
+
+String getProductRecycleInfo(Product product, Map<String, List<dynamic>> recycleInfo) {
+  String commonName = product.productName;
+  // Generalize product name
+  if (product.productName.contains(RegExp(r'can', caseSensitive: false))){
+    commonName = 'Pop can';
+  } else if (product.productName.contains(RegExp(r'bottle', caseSensitive: false))) {
+    commonName = 'Plastic bottle (beverage)';
+  }
+
+  final recycleInfoRow = recycleInfo[commonName];
+  
+  if (recycleInfoRow != null){
+    String specialInstructions = recycleInfo[commonName]?[6];  
+    if (specialInstructions != ''){
+      return specialInstructions;
+    }
+  }
+
+  return 'No special instructions.';
+}
+
 class MyAppState extends ChangeNotifier{
 
 }
@@ -39,9 +92,18 @@ class _HomePageState extends State<HomePage> {
   
   var selectedPage = 0;
   String barcodeScanRes = '';
+  
+  // Get recycling info from csv
+  Future<List<List<dynamic>>> initCSV() async {
+    var result = await DefaultAssetBundle.of(context).loadString(
+      './lib/Waste_Recycling_Material_List.csv',
+    );
+    return const CsvToListConverter().convert(result, eol: "\n");
+  }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
+
     Widget page;
     switch(selectedPage){
       case 0:
@@ -106,9 +168,17 @@ class _HomePageState extends State<HomePage> {
       ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton.large(
+      floatingActionButton: FloatingActionButton(
         onPressed: () async {
           print('Camera');
+          
+          // Process CSV
+          final fields = await initCSV();
+          Map<String, List<dynamic>> csvList = {};
+          for (final row in fields){
+            csvList[row[1]] = row;
+          }
+
           setState(() async {
             barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
               '#ff6666',
@@ -116,9 +186,33 @@ class _HomePageState extends State<HomePage> {
               false,
               ScanMode.BARCODE);
           });
-        },
-        child: const Icon(Icons.qr_code_scanner),
-      )
-    );
+          
+          var prodname = await fetchProduct(barcodeScanRes);
+          print(prodname.productName);
+          var recycleInstructions = getProductRecycleInfo(prodname, csvList);
+          print(recycleInstructions);
+          
+          // Tell the user what they scanned and give any instructions
+          // they may need
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Expanded(
+                  child: AlertDialog(
+                    content: Text('You scanned a ${prodname.productName}.\n\nFollow these instructions to recycle:\n${recycleInstructions}'),
+                    actions: [
+                      ElevatedButton(
+                        onPressed: () {},
+                        child: Text('Okay'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+          child: const Icon(Icons.qr_code_scanner),
+        )
+      );
   }
 }
