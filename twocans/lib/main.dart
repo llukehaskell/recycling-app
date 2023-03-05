@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
   // Get recycling info from csv
   Future<List<List<dynamic>>> initCSV() async {
     var result = await DefaultAssetBundle.of(context).loadString(
-      './lib/Waste_Recycling_Material_List.csv',
+      './assets/Waste_Recycling_Material_List.csv',
     );
     return const CsvToListConverter().convert(result, eol: "\n");
   }
@@ -194,12 +194,14 @@ class _HomePageState extends State<HomePage> {
             csvList[row[1]] = row;
           }
 
-          setState(() async {
-            barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+          final newbarcode = await FlutterBarcodeScanner.scanBarcode(
               '#ff6666',
               'Cancel',
               false,
               ScanMode.BARCODE);
+
+          setState(() {
+            barcodeScanRes = newbarcode;
           });
           
           var prodname = await fetchProduct(barcodeScanRes);
@@ -212,8 +214,7 @@ class _HomePageState extends State<HomePage> {
           showDialog(
               context: context,
               builder: (BuildContext context) {
-                return Expanded(
-                  child: AlertDialog(
+                  return AlertDialog(
                     content: Text('You scanned a ${prodname.productName}.\n\nFollow these instructions to recycle:\n${recycleInstructions}'),
                     actions: [
                       ElevatedButton(
@@ -221,8 +222,8 @@ class _HomePageState extends State<HomePage> {
                         child: Text('Okay'),
                       ),
                     ],
-                  ),
-                );
+                  );
+                
               },
             );
           },

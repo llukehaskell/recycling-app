@@ -1,12 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.twocans">
-   <application
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application
         android:label="twocans"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-
-        <meta-data android:name="com.google.android.geo.API_KEY"
-               android:value="AIzaSyCF_XW3nfE0SS4nbl1wuObLTfGtUaIVEO8"/>
 
         <activity
             android:name=".MainActivity"
@@ -34,5 +32,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCF_XW3nfE0SS4nbl1wuObLTfGtUaIVEO8"/>
+
     </application>
 </manifest>
