@@ -12,6 +12,9 @@ dependencies:
   google_maps_flutter: ^2.2.5
 
   provider: ^6.0.5
+  flutter_barcode_scanner: ^2.0.0
+  http: ^0.13.5
+  csv: ^5.0.1
 
 dev_dependencies:
   flutter_test:
@@ -20,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - lib/Waste_Recycling_Material_List.csv
