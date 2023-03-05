@@ -87,6 +87,9 @@ String getProductRecycleInfo(
 class MyAppState extends ChangeNotifier {
   var rewardsPoints = 0;
   var markerList = <Marker>{};
+  var messageFeed = ['Luke recycled a Pepsi can', 'Brook recycled a water bottle'];
+  var userName = "Reilly";
+  
   Future _addMarkerLongPressed(LatLng latlong) async {
     final MarkerId markerId = MarkerId(latlong.toString());
     Marker marker = Marker(
@@ -102,6 +105,18 @@ class MyAppState extends ChangeNotifier {
     );
     markerList.add(marker);
     print(markerList);
+    addPoints(1);
+    addMessageToFeed('$userName marked a recycling bin at $latlong');
+    notifyListeners();
+  }
+
+  void addPoints(int amount) {
+    rewardsPoints += amount;
+    notifyListeners();
+  }
+  
+  void addMessageToFeed(String msg){
+    messageFeed.add(msg);
     notifyListeners();
   }
 }
@@ -125,6 +140,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+    var points = appState.rewardsPoints;
+
     Widget page;
     switch (selectedPage) {
       case 0:
@@ -211,6 +229,9 @@ class _HomePageState extends State<HomePage> {
             var recycleInstructions = getProductRecycleInfo(prodname, csvList);
             print(recycleInstructions);
 
+            appState.addPoints(1);
+            appState.addMessageToFeed('Reilly recycled a ${prodname.productName}');
+
             // Tell the user what they scanned and give any instructions
             // they may need
             showDialog(
@@ -218,7 +239,7 @@ class _HomePageState extends State<HomePage> {
               builder: (BuildContext context) {
                 return AlertDialog(
                   content: Text(
-                      'You scanned a ${prodname.productName}.\n\nFollow these instructions to recycle:\n${recycleInstructions}'),
+                      'You scanned a ${prodname.productName}.\n\nFollow these instructions to recycle:\n${recycleInstructions}\n\nYou earned 1 point!'),
                   actions: [
                     ElevatedButton(
                       onPressed: () {},
@@ -237,7 +258,8 @@ class _HomePageState extends State<HomePage> {
 class FeedPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    var messages = ['Hello', 'Aloha', 'message'];
+    var appState = context.watch<MyAppState>();
+    var messages = appState.messageFeed;
 
     return Scaffold(
       body: SafeArea(
