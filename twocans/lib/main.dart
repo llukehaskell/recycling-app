@@ -35,46 +35,48 @@ class MainApp extends StatelessWidget {
 }
 
 Future<Product> fetchProduct(String barcode) async {
-  String UPCRequest = 'https://www.searchupc.com/handlers/upcsearch.ashx?request_type=3&access_token=DDDAAC97-C007-4076-B078-7B263ECF287E&upc=';
+  String UPCRequest =
+      'https://www.searchupc.com/handlers/upcsearch.ashx?request_type=3&access_token=DDDAAC97-C007-4076-B078-7B263ECF287E&upc=';
   UPCRequest = UPCRequest + barcode;
-  final response = await http
-        .get(Uri.parse(UPCRequest));
+  final response = await http.get(Uri.parse(UPCRequest));
 
-  if (response.statusCode == 200){
+  if (response.statusCode == 200) {
     return Product.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Failed to load product name');
   }
 }
 
-class Product{
+class Product {
   final String productName;
-  
+
   const Product({
     required this.productName,
   });
-  
-  factory Product.fromJson(Map<String, dynamic> json){
+
+  factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       productName: json['0']['productname'],
     );
   }
 }
 
-String getProductRecycleInfo(Product product, Map<String, List<dynamic>> recycleInfo) {
+String getProductRecycleInfo(
+    Product product, Map<String, List<dynamic>> recycleInfo) {
   String commonName = product.productName;
   // Generalize product name
-  if (product.productName.contains(RegExp(r'can', caseSensitive: false))){
+  if (product.productName.contains(RegExp(r'can', caseSensitive: false))) {
     commonName = 'Pop can';
-  } else if (product.productName.contains(RegExp(r'bottle', caseSensitive: false))) {
+  } else if (product.productName
+      .contains(RegExp(r'bottle', caseSensitive: false))) {
     commonName = 'Plastic bottle (beverage)';
   }
 
   final recycleInfoRow = recycleInfo[commonName];
-  
-  if (recycleInfoRow != null){
-    String specialInstructions = recycleInfo[commonName]?[6];  
-    if (specialInstructions != ''){
+
+  if (recycleInfoRow != null) {
+    String specialInstructions = recycleInfo[commonName]?[6];
+    if (specialInstructions != '') {
       return specialInstructions;
     }
   }
@@ -89,11 +91,13 @@ class MyAppState extends ChangeNotifier {
     Marker marker = Marker(
       markerId: markerId,
       draggable: true,
-      position: latlong, //With this parameter you automatically obtain latitude and longitude
+      position:
+          latlong, //With this parameter you automatically obtain latitude and longitude
       infoWindow: InfoWindow(
         title: "Recycling Location",
       ),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen), //Icon(Icons.recycling),
+      icon: BitmapDescriptor.defaultMarkerWithHue(
+          BitmapDescriptor.hueGreen), //Icon(Icons.recycling),
     );
     markerList.add(marker);
     print(markerList);
@@ -109,7 +113,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   var selectedPage = 0;
   String barcodeScanRes = '';
-  
+
   // Get recycling info from csv
   Future<List<List<dynamic>>> initCSV() async {
     var result = await DefaultAssetBundle.of(context).loadString(
@@ -123,7 +127,7 @@ class _HomePageState extends State<HomePage> {
     Widget page;
     switch (selectedPage) {
       case 0:
-        page = const Placeholder();
+        page = FeedPage();
         break;
       case 1:
         page = const Placeholder();
@@ -139,97 +143,123 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
+        body: Column(
+          children: [
+            Expanded(
+              child: Container(
+                color: Theme.of(context).colorScheme.primaryContainer,
+                child: page,
+              ),
             ),
-          ),
-          SafeArea(
-            child: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              iconSize: 36.0,
-              backgroundColor: Theme.of(context).colorScheme.background,
-              // ignore: prefer_const_literals_to_create_immutables
-              items:[
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.search),
-                  label: 'Search',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.map),
-                  label: 'Map',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
-              selectedItemColor: Theme.of(context).colorScheme.onBackground,
-              currentIndex: selectedPage,
-              onTap: (index) {
-                setState((){
-                  selectedPage = index;
-                });
-              },
+            SafeArea(
+              child: BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                iconSize: 36.0,
+                backgroundColor: Theme.of(context).colorScheme.background,
+                // ignore: prefer_const_literals_to_create_immutables
+                items: [
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.search),
+                    label: 'Search',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.map),
+                    label: 'Map',
+                  ),
+                  const BottomNavigationBarItem(
+                    icon: Icon(Icons.person),
+                    label: 'Profile',
+                  ),
+                ],
+                selectedItemColor: Theme.of(context).colorScheme.onBackground,
+                currentIndex: selectedPage,
+                onTap: (index) {
+                  setState(() {
+                    selectedPage = index;
+                  });
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          print('Camera');
-          
-          // Process CSV
-          final fields = await initCSV();
-          Map<String, List<dynamic>> csvList = {};
-          for (final row in fields){
-            csvList[row[1]] = row;
-          }
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            print('Camera');
 
-          final newbarcode = await FlutterBarcodeScanner.scanBarcode(
-              '#ff6666',
-              'Cancel',
-              false,
-              ScanMode.BARCODE);
+            // Process CSV
+            final fields = await initCSV();
+            Map<String, List<dynamic>> csvList = {};
+            for (final row in fields) {
+              csvList[row[1]] = row;
+            }
 
-          setState(() {
-            barcodeScanRes = newbarcode;
-          });
-          
-          var prodname = await fetchProduct(barcodeScanRes);
-          print(prodname.productName);
-          var recycleInstructions = getProductRecycleInfo(prodname, csvList);
-          print(recycleInstructions);
-          
-          // Tell the user what they scanned and give any instructions
-          // they may need
-          showDialog(
+            final newbarcode = await FlutterBarcodeScanner.scanBarcode(
+                '#ff6666', 'Cancel', false, ScanMode.BARCODE);
+
+            setState(() {
+              barcodeScanRes = newbarcode;
+            });
+
+            var prodname = await fetchProduct(barcodeScanRes);
+            print(prodname.productName);
+            var recycleInstructions = getProductRecycleInfo(prodname, csvList);
+            print(recycleInstructions);
+
+            // Tell the user what they scanned and give any instructions
+            // they may need
+            showDialog(
               context: context,
               builder: (BuildContext context) {
-                  return AlertDialog(
-                    content: Text('You scanned a ${prodname.productName}.\n\nFollow these instructions to recycle:\n${recycleInstructions}'),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: Text('Okay'),
-                      ),
-                    ],
-                  );
-                
+                return AlertDialog(
+                  content: Text(
+                      'You scanned a ${prodname.productName}.\n\nFollow these instructions to recycle:\n${recycleInstructions}'),
+                  actions: [
+                    ElevatedButton(
+                      onPressed: () {},
+                      child: Text('Okay'),
+                    ),
+                  ],
+                );
               },
             );
           },
           child: const Icon(Icons.qr_code_scanner),
-        )
-      );
+        ));
+  }
+}
+
+class FeedPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var messages = ['Hello', 'Aloha', 'message'];
+
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Center(child: Text("Feed")),
+            ),
+            for (var msg in messages)
+            Container(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(child: Text(msg)),
+                ),
+                color: Theme.of(context).colorScheme.primaryContainer,
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
 
